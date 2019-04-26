@@ -108,25 +108,39 @@ struct Heap* createHeap(int total_size)
     return minHeap;
 };
 
+void swapNodes(struct HeapNode** a, struct HeapNode** b)
+{
+    struct HeapNode* t = *a;
+    *a = *b;
+    *b = t;
+}
+
 void minHeapify(struct Heap* minHeap, int index)
 {   
-    int mfact = index << c, temp = index;
-    for(unsigned int i = 1 ; i <= bf; i++)
-	{   
-        if((mfact+i) < minHeap->c_size)
-			if(minHeap->heap_array[temp]->key > minHeap->heap_array[mfact+i]->key)
-				temp = mfact+i;
-    }            
+    // int mfact = index << c, temp = index;
+    // for(unsigned int i = 1 ; i <= bf; i++)
+	// {   
+    //     if((mfact+i) < minHeap->c_size)
+	// 		if(minHeap->heap_array[temp]->key > minHeap->heap_array[mfact+i]->key)
+	// 			temp = mfact+i;
+    // } 
+    int temp = index;
+    int l = 2*index +1;
+    int r = 2*index +2;
+
+    if( (l<minHeap->c_size) && (minHeap->heap_array[l]->key < minHeap->heap_array[temp]->key))
+        temp=l;
+    if( (r<minHeap->c_size) && (minHeap->heap_array[r]->key < minHeap->heap_array[temp]->key))
+        temp=r;
+    
     if(temp!=index)
     {
         //swap positions
         minHeap->position[minHeap->heap_array[temp]->v] = index;
         minHeap->position[minHeap->heap_array[index]->v] = temp;
 
-        struct HeapNode* temp1 = minHeap->heap_array[index];
-        minHeap->heap_array[index] = minHeap->heap_array[temp];
-        minHeap->heap_array[temp] = temp1;
-
+        //swap nodes
+        swapNodes(&minHeap->heap_array[temp], &minHeap->heap_array[index]);
         minHeapify(minHeap, temp);
     }
 }
@@ -137,39 +151,59 @@ struct HeapNode* extractMin(struct Heap* minHeap)
     if(minHeap->c_size==0)
         return NULL;
     
+    //swap with the last node in heap
     struct HeapNode* root = minHeap->heap_array[0];
+    struct HeapNode* last = minHeap->heap_array[minHeap->c_size - 1];
+    
+    //swap root and last node
+    minHeap->heap_array[0] = last;
+    minHeap->heap_array[minHeap->c_size-1] = root;
 
-    minHeap->heap_array[0] = minHeap->heap_array[minHeap->c_size - 1];
+    // minHeap->heap_array[0] = minHeap->heap_array[minHeap->c_size - 1];
 
     //updating the positions 
     minHeap->position[root->v] = minHeap->c_size-1;
-    minHeap->position[minHeap->heap_array[minHeap->c_size-1]->v]=0;
+    minHeap->position[last->v]=0;
 
     minHeap->c_size--;
     minHeapify(minHeap, 0);
+    
     return root;
 };
 
 void decreaseKey(int v, int key, struct Heap* minHeap)
 {
     int index = minHeap->position[v];
-    minHeap->heap_array[index]->key = key;
-    int parent = 0;
-    
-    if(index!=0)
-        parent = (index-1) >> c;
-
-    while(index && (minHeap->heap_array[index]->key < minHeap->heap_array[parent]->key))
+    if(index>=minHeap->c_size)
     {
-        minHeap->position[minHeap->heap_array[index]->v] = parent;
-        minHeap->position[minHeap->heap_array[parent]->v] = index;
+        //swap positions
+        minHeap->position[v] = minHeap->c_size;
+        minHeap->position[minHeap->heap_array[minHeap->c_size]->v] = index;
 
-        struct HeapNode* temp = minHeap->heap_array[index];
-        minHeap->heap_array[index] = minHeap->heap_array[parent];
-        minHeap->heap_array[parent] = temp;
+        //swap nodes
+        swapNodes(&minHeap->heap_array[index], &minHeap->heap_array[minHeap->c_size]);
+        index = minHeap->c_size;
 
-        index=parent;
-        parent = (index-1) >> c;
+        minHeap->c_size++;
+    }
+   
+    minHeap->heap_array[index]->key = key;
+    // int parent = 0;
+    
+    // if(index!=0)
+    //     parent = (index-1) >> c;
+
+    while(index && (minHeap->heap_array[index]->key < minHeap->heap_array[((index-1)/2)]->key))
+    {
+        //swap position of nodes
+        minHeap->position[minHeap->heap_array[index]->v] = ((index-1)/2);
+        minHeap->position[minHeap->heap_array[((index-1)/2)]->v] = index;
+
+        //swap nodes
+        swapNodes(&minHeap->heap_array[index], &minHeap->heap_array[((index-1)/2)]);
+
+        index=((index-1)/2);
+        // parent = (index-1) >> c;
     }
 }
 
@@ -185,6 +219,8 @@ vector<int> Dijkstra(Graph g, int s)
 
     //initialize heap
     struct Heap* minHeap=createHeap(p_v);
+    //initialize number of nodes in heap
+    minHeap->c_size= p_v;
 
     //intialize distance values for each vertex
     for(int i=0; i<p_v; i++)
@@ -201,26 +237,21 @@ vector<int> Dijkstra(Graph g, int s)
     minHeap->position[s] = s;
     decreaseKey(s, dist[s], minHeap);
 
-    //initialize number of nodes in heap
-    minHeap->c_size= p_v;
-
     while(minHeap->c_size>0)
     {
-        // if(minHeap->heap_array[0]->key==INT_MAX)
-        //     forest++;
-        // else
-        //     total_sum+=minHeap->heap_array[0]->key ;
         struct HeapNode* min= extractMin(minHeap);
         int u = min->v;
+        
+        vector< pair<int, int> >::iterator i;
 
-        for(auto i=g.adj[u].begin(); i!=g.adj[u].end(); i++)
+        for(i=g.adj[u].begin(); i!=g.adj[u].end(); i++)
         {
             int v = i->first;
             //check if 'v' is in minHeap and the key value is greater than the edge weight
-            if((i->second + dist[u] < dist[v]) && (minHeap->position[v] < minHeap->c_size))
+            if((i->second + dist[u] < dist[v]))
+            // && (minHeap->position[v] < minHeap->c_size))
             {
                 dist[v] = dist[u] + i->second;
-                // key[v] = i->second;
                 result[v] = u;
                 decreaseKey(v, dist[v], minHeap);
             }
