@@ -8,6 +8,7 @@ using namespace std;
 
 int V=0, E=0, K=0;
 int c=0, bf=2;
+bool flag=false;
 vector< pair<int, pair<int, int> > > myvec;
 vector< vector <int> > table;
 
@@ -277,7 +278,7 @@ vector<int> BellmanFord(Graph g, int s)
     for(int i=0; i<l_e; i++)
     {
         if(dist[g.edge[i]->s] + g.edge[i]->wt < dist[g.edge[i]->d])
-            cout<<"Negative edge weight cycle"<<endl;
+            flag=true;
     }
     for(int i=0; i<l_v; i++)
     {
@@ -295,8 +296,13 @@ void Johnson(Graph g)
     for(int i=0; i<g.edges; i++)
         g.edge[i]->wt+= modifiedwt[g.edge[i]->s] - modifiedwt[g.edge[i]->d];
     
-    for(int i=0; i<g.vertices; i++)
-        table.push_back(Dijkstra(g,i));
+    if(!flag)
+    {
+        for(int i=0; i<g.vertices; i++)
+            table.push_back(Dijkstra(g,i));
+    }
+    else
+        cout<<"Negative edge weight cycle"<<endl;
 
     // for(int i=0; i<V; i++)
     // {
@@ -312,7 +318,10 @@ void results(int K, vector< pair <int,int> > query)
 {
     for(int i=0; i<K; i++)
     {
-        cout<<query[i].first<<" -> "<<query[i].second<<" = "<<table[query[i].first][query[i].second]<<endl;
+        if(table[query[i].first][query[i].second] != INT_MAX)
+            cout<<query[i].first<<" -> "<<query[i].second<<" = "<<table[query[i].first][query[i].second]<<endl;
+        else
+            cout<<query[i].first<<" -> "<<query[i].second<<" = x"<<endl;
     }
 }
 
@@ -363,10 +372,7 @@ int main(int argc, char* argv[])
     g.make_adjlist();
     g.make_edgelist();
     Johnson(g);
-    results(K, query);
-    // Dijkstra(g,0);
-    // BellmanFord(g,0);
-    // g.print_Graph();
-
+    if(!flag)
+        results(K, query);
     return 0;
 }
