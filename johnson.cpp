@@ -1,3 +1,15 @@
+/*
+
+Created by Sujal on 22/04/19.
+Copyright © 2019 Sujal. All rights reserved.
+
+CSC-505: Homework 5
+
+Members:
+Sujal Sujal (ssujal)
+Swastik Mittal (smittal6)
+
+*/
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -7,7 +19,6 @@
 using namespace std;
 
 int V=0, E=0, K=0;
-int c=0, bf=2;
 bool flag=false;
 vector< pair<int, pair<int, int> > > myvec;
 vector< vector <int> > table;
@@ -28,12 +39,10 @@ public:
         this->vertices = x;
         this->edges = y;
         adj = new vector< pair<int, int> > [x];
-        // edge = new Edge [y];
     }
     void add_edge(int u, int v, int wt)
     {
         adj[u].push_back(make_pair(v, wt));
-        // adj[v].push_back(make_pair(u, wt));
     }
     void make_adjlist()
     {
@@ -117,13 +126,6 @@ void swapNodes(struct HeapNode** a, struct HeapNode** b)
 
 void minHeapify(struct Heap* minHeap, int index)
 {   
-    // int mfact = index << c, temp = index;
-    // for(unsigned int i = 1 ; i <= bf; i++)
-	// {   
-    //     if((mfact+i) < minHeap->c_size)
-	// 		if(minHeap->heap_array[temp]->key > minHeap->heap_array[mfact+i]->key)
-	// 			temp = mfact+i;
-    // } 
     int temp = index;
     int l = 2*index +1;
     int r = 2*index +2;
@@ -159,8 +161,6 @@ struct HeapNode* extractMin(struct Heap* minHeap)
     minHeap->heap_array[0] = last;
     minHeap->heap_array[minHeap->c_size-1] = root;
 
-    // minHeap->heap_array[0] = minHeap->heap_array[minHeap->c_size - 1];
-
     //updating the positions 
     minHeap->position[root->v] = minHeap->c_size-1;
     minHeap->position[last->v]=0;
@@ -188,11 +188,7 @@ void decreaseKey(int v, int key, struct Heap* minHeap)
     }
    
     minHeap->heap_array[index]->key = key;
-    // int parent = 0;
     
-    // if(index!=0)
-    //     parent = (index-1) >> c;
-
     while(index && (minHeap->heap_array[index]->key < minHeap->heap_array[((index-1)/2)]->key))
     {
         //swap position of nodes
@@ -203,7 +199,6 @@ void decreaseKey(int v, int key, struct Heap* minHeap)
         swapNodes(&minHeap->heap_array[index], &minHeap->heap_array[((index-1)/2)]);
 
         index=((index-1)/2);
-        // parent = (index-1) >> c;
     }
 }
 
@@ -219,6 +214,7 @@ vector<int> Dijkstra(Graph g, int s)
 
     //initialize heap
     struct Heap* minHeap=createHeap(p_v);
+    
     //initialize number of nodes in heap
     minHeap->c_size= p_v;
 
@@ -249,7 +245,6 @@ vector<int> Dijkstra(Graph g, int s)
             int v = i->first;
             //check if 'v' is in minHeap and the key value is greater than the edge weight
             if((i->second + dist[u] < dist[v]))
-            // && (minHeap->position[v] < minHeap->c_size))
             {
                 dist[v] = dist[u] + i->second;
                 result[v] = u;
@@ -334,15 +329,6 @@ void Johnson(Graph g)
     }
     else
         cout<<"Negative edge weight cycle"<<endl;
-
-    // for(int i=0; i<V; i++)
-    // {
-    //     for(int j=0; j<V; j++)
-    //     {
-    //         cout<<table[i][j]<<"\t";
-    //     }
-    //     cout<<endl;
-    // }
 }
 
 void results(int K, vector< pair <int,int> > query)
