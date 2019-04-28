@@ -11,6 +11,8 @@ Swastik Mittal (smittal6)
 
 */
 #include <iostream>
+#include <stdlib.h>
+#include <limits.h>
 #include <sstream>
 #include <vector>
 #include <cmath>
